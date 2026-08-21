@@ -1,5 +1,5 @@
 const NOTION_API_KEY = 'ntn_ba8706881512XBRTevCq7o0PNqC6iQ2gKGMKkleN8OH69U';
-const NOTION_DB_ID   = '3c3033e5a59780e2bbd2e802f3419ced';
+const NOTION_DB_ID   = '3c3033e5a59780d9841bfd8a6f57fc75';
 
 exports.handler = async (event) => {
   const headers = {
