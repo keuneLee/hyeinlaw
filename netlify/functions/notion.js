@@ -27,7 +27,6 @@ exports.handler = async (event) => {
       return { statusCode: 200, headers, body: JSON.stringify(data) };
 
     } else {
-      // filter 없이 전체 조회해서 데이터 구조 파악
       const res = await fetch(`https://api.notion.com/v1/databases/${NOTION_DB_ID}/query`, {
         method: 'POST',
         headers: {
@@ -35,7 +34,11 @@ exports.handler = async (event) => {
           'Notion-Version': '2022-06-28',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ page_size: 10 }),
+        body: JSON.stringify({
+          filter: { property: '공개여부', checkbox: { equals: true } },
+          sorts: [{ property: '날짜', direction: 'descending' }],
+          page_size: 100,
+        }),
       });
       const data = await res.json();
       return { statusCode: 200, headers, body: JSON.stringify(data) };
