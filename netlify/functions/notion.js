@@ -8,7 +8,6 @@ exports.handler = async (event) => {
     'Content-Type': 'application/json',
   };
 
-  // preflight 요청 처리
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers, body: '' };
   }
@@ -17,35 +16,26 @@ exports.handler = async (event) => {
   const pageId = event.queryStringParameters?.pageId;
 
   try {
-    let url, body;
-
     if (path === 'blocks' && pageId) {
-      // 상세페이지 이미지 블록 조회
-      url = `https://api.notion.com/v1/blocks/${pageId}/children?page_size=100`;
-      const res = await fetch(url, {
+      const res = await fetch(`https://api.notion.com/v1/blocks/${pageId}/children?page_size=100`, {
         headers: {
           'Authorization': `Bearer ${NOTION_API_KEY}`,
-          'Notion-Version': '2025-09-03',
+          'Notion-Version': '2022-06-28',
         },
       });
       const data = await res.json();
       return { statusCode: 200, headers, body: JSON.stringify(data) };
 
     } else {
-      // 승소사례 목록 조회
-      url = `https://api.notion.com/v1/databases/${NOTION_DB_ID}/query`;
-      const res = await fetch(url, {
+      // filter 없이 전체 조회해서 데이터 구조 파악
+      const res = await fetch(`https://api.notion.com/v1/databases/${NOTION_DB_ID}/query`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${NOTION_API_KEY}`,
-          'Notion-Version': '2025-09-03',
+          'Notion-Version': '2022-06-28',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          filter: { property: '공개여부', checkbox: { equals: true } },
-          sorts: [{ property: '날짜', direction: 'descending' }],
-          page_size: 100,
-        }),
+        body: JSON.stringify({ page_size: 10 }),
       });
       const data = await res.json();
       return { statusCode: 200, headers, body: JSON.stringify(data) };
