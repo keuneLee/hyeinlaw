@@ -25,7 +25,7 @@ exports.handler = async (event) => {
       const res = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${NOTION_API_KEY}`,
-          'Notion-Version': '2022-06-28',
+          'Notion-Version': '2025-09-03',
         },
       });
       const data = await res.json();
@@ -38,7 +38,7 @@ exports.handler = async (event) => {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${NOTION_API_KEY}`,
-          'Notion-Version': '2022-06-28',
+          'Notion-Version': '2025-09-03',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
