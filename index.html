@@ -544,14 +544,30 @@ async function showCaseDetail(id) {
   const c = allCases.find(x => x.id === id);
   if (!c) { body.innerHTML = '<div class="cases-empty">사례를 찾을 수 없습니다.</div>'; return; }
 
-  let imagesHtml = '';
+  let blocksHtml = '';
   if (!id.startsWith('sample-')) {
     try {
-      const images = await fetchCaseImages(id);
-      if (images.length) {
-        imagesHtml = `<div class="case-detail-images">${images.map(src=>`<img src="${src}" loading="lazy">`).join('')}</div>`;
-      }
-    } catch(e) { /* 이미지 없으면 그냥 텍스트만 표시 */ }
+      const blocks = await fetchCaseBlocks(id);
+      blocksHtml = blocks.map(b => {
+        if (b.type === 'image') {
+          const src = b.image.type === 'external' ? b.image.external.url : b.image.file.url;
+          return `<img src="${src}" loading="lazy" style="width:100%;border-radius:4px;display:block;margin-bottom:16px;">`;
+        }
+        const textTypes = ['paragraph','heading_1','heading_2','heading_3','bulleted_list_item','numbered_list_item','quote'];
+        if (textTypes.includes(b.type)) {
+          const texts = (b[b.type]?.rich_text||[]).map(t=>t.plain_text).join('');
+          if (!texts.trim()) return '';
+          if (b.type === 'heading_1') return `<h2 style="font-size:20px;font-weight:600;margin:28px 0 8px;">${texts}</h2>`;
+          if (b.type === 'heading_2') return `<h3 style="font-size:17px;font-weight:600;margin:24px 0 8px;">${texts}</h3>`;
+          if (b.type === 'heading_3') return `<h4 style="font-size:15px;font-weight:600;margin:20px 0 8px;">${texts}</h4>`;
+          if (b.type === 'bulleted_list_item') return `<p style="padding-left:16px;margin-bottom:6px;">· ${texts}</p>`;
+          if (b.type === 'numbered_list_item') return `<p style="padding-left:16px;margin-bottom:6px;">${texts}</p>`;
+          if (b.type === 'quote') return `<blockquote style="border-left:3px solid #C9A84C;padding:10px 16px;margin:16px 0;color:#666;">${texts}</blockquote>`;
+          return `<p style="font-size:15px;line-height:1.9;color:#555;margin-bottom:12px;word-break:keep-all;">${texts}</p>`;
+        }
+        return '';
+      }).join('');
+    } catch(e) { /* 본문 없으면 무시 */ }
   }
 
   body.innerHTML = `
@@ -559,17 +575,15 @@ async function showCaseDetail(id) {
     <h1 class="case-detail-title">${c.title}</h1>
     <div class="case-detail-date">${formatDate(c.date)}</div>
     <div class="case-detail-result"><b>결과</b> · ${c.result}</div>
-    <p class="case-detail-summary">${c.summary}</p>
-    ${imagesHtml}
+    ${c.summary ? `<p class="case-detail-summary">${c.summary}</p>` : ''}
+    ${blocksHtml ? `<div class="case-detail-body" style="margin-top:32px;">${blocksHtml}</div>` : ''}
   `;
 }
 
-async function fetchCaseImages(pageId) {
+async function fetchCaseBlocks(pageId) {
   const res = await fetch(`${PROXY}?path=blocks&pageId=${pageId}`);
   const data = await res.json();
-  return (data.results||[])
-    .filter(b => b.type === 'image')
-    .map(b => b.image.type === 'external' ? b.image.external.url : b.image.file.url);
+  return data.results || [];
 }
 
 /* REVEAL */
