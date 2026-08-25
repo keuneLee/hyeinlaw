@@ -555,7 +555,16 @@ async function showCaseDetail(id) {
         }
         const textTypes = ['paragraph','heading_1','heading_2','heading_3','bulleted_list_item','numbered_list_item','quote'];
         if (textTypes.includes(b.type)) {
-          const texts = (b[b.type]?.rich_text||[]).map(t=>t.plain_text).join('');
+          const texts = (b[b.type]?.rich_text||[]).map(t => {
+            let s = t.plain_text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            if (t.annotations?.bold) s = `<strong>${s}</strong>`;
+            if (t.annotations?.italic) s = `<em>${s}</em>`;
+            if (t.annotations?.underline) s = `<u>${s}</u>`;
+            if (t.annotations?.strikethrough) s = `<s>${s}</s>`;
+            if (t.annotations?.code) s = `<code style="background:#f4f4f4;padding:2px 6px;border-radius:3px;font-size:13px;">${s}</code>`;
+            if (t.href) s = `<a href="${t.href}" target="_blank" style="color:#2B4C7E;text-decoration:underline;">${s}</a>`;
+            return s;
+          }).join('');
           if (!texts.trim()) return '';
           if (b.type === 'heading_1') return `<h2 style="font-size:20px;font-weight:600;margin:28px 0 8px;">${texts}</h2>`;
           if (b.type === 'heading_2') return `<h3 style="font-size:17px;font-weight:600;margin:24px 0 8px;">${texts}</h3>`;
